@@ -1,0 +1,7 @@
+pymysql
+torch
+transformers
+configparser
+beautifulsoup4
+scikit-learn 
+elasticsearch

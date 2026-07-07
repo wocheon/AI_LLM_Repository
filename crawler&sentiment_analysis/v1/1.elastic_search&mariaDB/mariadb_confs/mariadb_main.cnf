@@ -1,0 +1,20 @@
+[client]
+default-character-set = utf8mb4
+
+[mysql]
+default-character-set = utf8mb4
+
+[mysqld]
+# --- 문자셋 설정 (한글/이모지 지원) ---
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+init-connect = 'SET NAMES utf8mb4'
+
+# --- 복제(Replication) 설정 ---
+server-id = 1
+log_bin = mysql-bin
+binlog_format = ROW
+# GTID 관련 설정은 필요에 따라 유지/삭제 (일반적인 단일 DB면 불필요할 수 있음)
+gtid_strict_mode = ON
+# gtid_domain_id는 MariaDB 특화 옵션이므로 버전에 따라 지원 여부 확인 필요 (보통 10.x 이상)
+# gtid_domain_id = 1 

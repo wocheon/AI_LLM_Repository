@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Elasticsearch 설정
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.4
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    volumes:
+      - ./esdata:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - app-network
+
+  # Kibana 설정
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.0.4
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - app-network
+    depends_on:
+      - elasticsearch
+
+  # MariaDB 설정
+  mariadb:
+    image: mariadb:10.5.10
+    container_name: mariadb-main
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpass
+      - MYSQL_DATABASE=connect_test_db
+      - MYSQL_USER=appuser
+      - MYSQL_PASSWORD=appuserpass
+    volumes:
+      - ./mariadb_confs/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./mariadb_confs/mariadb_main.cnf:/etc/mysql/mariadb.cnf
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    name: app-network
+    driver: bridge

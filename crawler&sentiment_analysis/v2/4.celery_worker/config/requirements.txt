@@ -1,0 +1,7 @@
+celery[redis]==5.3.6
+elasticsearch==8.11.1
+openai
+requests
+mysql-connector-python
+feedparser  # 만약 worker에서도 일부 파싱 로직을 쓴다면 필요
+python-dotenv

@@ -1,0 +1,8 @@
+torch
+transformers
+sentencepiece
+protobuf
+pymysql
+configparser
+beautifulsoup4
+elasticsearch

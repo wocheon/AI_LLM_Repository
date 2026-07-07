@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.4
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - TZ=Asia/Seoul  # [추가] 시간대 설정
+      - path.repo=/usr/share/elasticsearch/backup
+    volumes:
+      - ./esdata:/usr/share/elasticsearch/data
+      - ./esbackup:/usr/share/elasticsearch/backup
+    ports:
+      - "9200:9200"
+    networks:
+      - app-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.0.4
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - TZ=Asia/Seoul  # [추가] 시간대 설정
+    ports:
+      - "5601:5601"
+    networks:
+      - app-network
+    depends_on:
+      - elasticsearch
+
+networks:
+  app-network:
+    name: app-network
+    driver: bridge

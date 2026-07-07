@@ -1,0 +1,6 @@
+[mariadb]
+server_id=1
+log_bin=mysql-bin
+binlog_format=ROW
+gtid_strict_mode=ON
+gtid_domain_id=1

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Model Comparison</title>
+    
+    <!-- 스타일 -->
+    <style>
+      .comparison-cell { min-width: 200px; background-color: #f8f9fa; vertical-align: middle !important; }
+      .score-bar { height: 8px; margin-top: 5px; background-color: #e9ecef; }
+      .vs-badge { font-weight: bold; color: #888; margin: 0 15px; font-size: 1.2rem; }
+      .content-preview { font-size: 0.85rem; color: #666; max-width: 300px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+      .card-header-actions { display: flex; align-items: center; justify-content: space-between; }
+      
+      /* 필터 행 스타일: 기본 숨김 */
+      #filter-row { background-color: #f1f3f5; }
+      .filter-input { width: 100%; font-size: 0.85rem; padding: 4px; border: 1px solid #ced4da; border-radius: 3px; }
+    </style>
+
+    {% set active_tab = 'comparison' %}
+    {% include 'header.html' %}
+</head>
+<body id="page-top">
+
+<div class="container-fluid mt-4">
+
+    <!-- [컨트롤러] 모델 선택 폼 -->
+    <div class="card shadow mb-4 border-left-primary">
+        <div class="card-body py-3">
+            <form method="GET" action="/comparison" class="form-inline justify-content-center align-items-center">
+                <!-- Model A -->
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text font-weight-bold bg-primary text-white">Model A</span>
+                    </div>
+                    <select name="model1" class="form-control" onchange="this.form.submit()">
+                        {% for m in all_models %}
+                            <option value="{{ m }}" {% if selected_models.a == m %}selected{% endif %}>{{ m|upper }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <span class="vs-badge">VS</span>
+
+                <!-- Model B -->
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text font-weight-bold bg-success text-white">Model B</span>
+                    </div>
+                    <select name="model2" class="form-control" onchange="this.form.submit()">
+                        {% for m in all_models %}
+                            <option value="{{ m }}" {% if selected_models.b == m %}selected{% endif %}>{{ m|upper }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- [결과 테이블] -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 card-header-actions">
+            <h6 class="m-0 font-weight-bold text-primary">
+                Comparison Result: <span class="text-dark">{{ model_list[0] }}</span> vs <span class="text-dark">{{ model_list[1] }}</span>
+            </h6>
+            <div>
+                <span class="badge badge-info mr-2">{{ combined_data|length }} Articles</span>
+                <!-- [필터 토글 버튼] -->
+                <button id="toggle-filter-btn" class="btn btn-sm btn-outline-secondary">🔍 필터 열기</button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="comparisonTable" width="100%" cellspacing="0">
+                    <thead class="thead-dark text-center">
+                        <tr>
+                            <th style="width: 5%">ID</th>
+                            <th style="width: 8%">Keyword</th>
+                            <th style="width: 8%">Category</th>
+                            <th style="width: 25%">Article Info</th>
+                            
+                            <!-- Model A Header -->
+                            <th class="bg-primary text-white border-primary" style="width: 27%">
+                                {{ model_list[0] }}
+                            </th>
+
+                            <!-- Model B Header -->
+                            <th class="bg-success text-white border-success" style="width: 27%">
+                                {{ model_list[1] }}
+                            </th>
+                        </tr>
+                        
+                        <!-- [필터링 행 추가] -->
+                        <tr id="filter-row" style="display: none;">
+                            <!-- 0: ID -->
+                            <th><input type="text" class="filter-input column-filter" data-column="0" placeholder="ID"></th>
+                            <!-- 1: Keyword -->
+                            <th><input type="text" class="filter-input column-filter" data-column="1" placeholder="Keyword"></th>
+                            <!-- 2: Category -->
+                            <th><input type="text" class="filter-input column-filter" data-column="2" placeholder="Category"></th>
+                            <!-- 3: Article Info (제목/내용) -->
+                            <th><input type="text" class="filter-input column-filter" data-column="3" placeholder="Title/Content"></th>
+                            
+                            <!-- 4: Model A 감성 필터 -->
+                            <th>
+                                <select class="filter-input column-filter" data-column="4">
+                                    <option value="">All</option>
+                                    <option value="positive">Positive</option>
+                                    <option value="negative">Negative</option>
+                                    <option value="neutral">Neutral</option>
+                                </select>
+                            </th>
+                            
+                            <!-- 5: Model B 감성 필터 -->
+                            <th>
+                                <select class="filter-input column-filter" data-column="5">
+                                    <option value="">All</option>
+                                    <option value="positive">Positive</option>
+                                    <option value="negative">Negative</option>
+                                    <option value="neutral">Neutral</option>
+                                </select>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for article_id, info in combined_data.items() %}
+                        <tr>
+                            <!-- 0: ID -->
+                            <td class="text-center align-middle font-weight-bold">{{ info.meta.id }}</td>
+                            <!-- 1: Keyword -->
+                            <td class="text-center align-middle">{{ info.meta.keyword }}</td>
+                            <!-- 2: Category -->
+                            <td class="text-center align-middle">{{ info.meta.category }}</td>
+                            
+                            <!-- 3: Article Info -->
+                            <td class="align-middle">
+                                <div class="font-weight-bold" style="white-space: normal; word-break: keep-all;">
+                                    {{ info.meta.title }}
+                                </div>
+                                <div class="content-preview mt-1">
+                                    <span class="text-secondary small">ID: {{ info.meta.content }}</span>
+                                </div>
+                                <div class="mt-1 small text-muted">
+                                    {{ info.meta.published_at }}
+                                    {% if info.meta.url %}
+                                        | <a href="{{ info.meta.url }}" target="_blank">Link 🔗</a>
+                                    {% endif %}
+                                    {% if info.meta.content %}
+                                        <span class="mr-2">|</span>
+                                        <a href="/summary/{{ info.meta.content }}" 
+                                           onclick="window.open(this.href, 'summaryPopup', 'width=900,height=600,scrollbars=yes,resizable=yes'); return false;"
+                                           class="badge badge-info cursor-pointer text-white"
+                                           style="cursor: pointer;">
+                                           요약 보기 📝
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                            <!-- 4: Result A -->
+                            {% set model_a_name = model_list[0] %}
+                            {% set res_a = info.models.get(model_a_name) %}
+                            <td class="comparison-cell text-center border-left-primary">
+                                {% if res_a %}
+                                    <h5 class="mb-1">
+                                        {{ emoji_map[model_a_name].get(res_a.sentiment|lower, '') }} 
+                                        <!-- 필터링 대상: 텍스트(POSITIVE/NEGATIVE) -->
+                                        <span class="text-uppercase 
+                                            {% if res_a.sentiment|lower == 'positive' %}text-success
+                                            {% elif res_a.sentiment|lower == 'negative' %}text-danger
+                                            {% endif %}">
+                                            {{ res_a.sentiment }}
+                                        </span>
+                                    </h5>
+                                    <div class="small font-weight-bold text-muted">{{ "%.4f"|format(res_a.score) }}</div>
+                                    <div class="progress score-bar mx-auto" style="width: 80%;">
+                                        <div class="progress-bar bg-primary" role="progressbar" 
+                                             style="width: {{ (res_a.score * 100) }}%"></div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted small">- No Result -</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- 5: Result B -->
+                            {% set model_b_name = model_list[1] %}
+                            {% set res_b = info.models.get(model_b_name) %}
+                            <td class="comparison-cell text-center border-left-success">
+                                {% if res_b %}
+                                    <h5 class="mb-1">
+                                        {{ emoji_map[model_b_name].get(res_b.sentiment|lower, '') }}
+                                        <span class="text-uppercase 
+                                            {% if res_b.sentiment|lower == 'positive' %}text-success
+                                            {% elif res_b.sentiment|lower == 'negative' %}text-danger
+                                            {% endif %}">
+                                            {{ res_b.sentiment }}
+                                        </span>
+                                    </h5>
+                                    <div class="small font-weight-bold text-muted">{{ "%.4f"|format(res_b.score) }}</div>
+                                    <div class="progress score-bar mx-auto" style="width: 80%;">
+                                        <div class="progress-bar bg-success" role="progressbar" 
+                                             style="width: {{ (res_b.score * 100) }}%"></div>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted small">- No Result -</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'footer.html' %}
+
+<!-- [필터링 스크립트] -->
+<script>
+$(document).ready(function() {
+    // 1. 필터 버튼 토글
+    $('#toggle-filter-btn').click(function() {
+        $('#filter-row').toggle();
+    });
+
+    // 2. 필터 입력 이벤트 리스너
+    $('.column-filter').on('keyup change', function() {
+        filterTable();
+    });
+
+    function filterTable() {
+        var filters = {};
+        
+        // 입력된 필터 값 수집
+        $('.column-filter').each(function() {
+            var colIdx = $(this).data('column');
+            var val = $(this).val().toLowerCase();
+            if (val) {
+                filters[colIdx] = val;
+            }
+        });
+
+        // 테이블 행 순회
+        $('#comparisonTable tbody tr').each(function() {
+            var $row = $(this);
+            var showRow = true;
+
+            $.each(filters, function(colIdx, filterVal) {
+                var $cell = $row.find('td').eq(colIdx);
+                
+                // [중요] 셀 내용에서 텍스트만 추출 (HTML 태그 제거)
+                // 감성(Positive) 부분의 텍스트가 정확히 매칭되도록 함
+                var cellText = $cell.text().toLowerCase();
+
+                // 부분 일치 검사
+                if (cellText.indexOf(filterVal) === -1) {
+                    showRow = false;
+                    return false; // 루프 중단
+                }
+            });
+
+            $row.toggle(showRow);
+        });
+    }
+});
+</script>
+
+</body>
+</html>

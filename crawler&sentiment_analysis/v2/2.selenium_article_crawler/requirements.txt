@@ -1,0 +1,15 @@
+feedparser
+beautifulsoup4
+newspaper3k
+trafilatura
+requests
+selenium
+pymysql
+configparser
+lxml[html_clean]
+lxml_html_clean
+elasticsearch
+configparser
+psutil
+celery[redis]
+redis

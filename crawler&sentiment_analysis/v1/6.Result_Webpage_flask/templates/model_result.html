@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>Model Analysis Result: {{ model_name }}</title>
+    
+    <!-- 
+    <style>
+      thead input, thead select {
+        width: 100%;
+        box-sizing: border-box;
+        height: 32px;
+        padding: 4px 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      th.date-filter { min-width: 250px; white-space: nowrap; }
+      .date-range-group { display: flex; gap: 6px; }
+      .date-range-group input {
+        width: 120px; min-width: 100px; max-width: 130px; display: inline-block; margin: 0;
+      }
+      #toggle-filter-btn { padding: 3px 8px; font-size: 0.875rem; }
+      .content-cell { max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    </style>
+-->
+    {% set active_tab = 'model_result' %}
+    {% include 'header.html' %}
+</head>
+<body id="page-top">
+
+<div class="container-fluid mt-4">
+    <!-- 상단 제목 및 뒤로가기 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Model Result: {{ model_name }}</h1>
+        <a href="/" class="btn btn-secondary btn-sm">← Dashboard</a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Analysis Data Table</h6>
+            <!-- 필터 토글 버튼 (table-filter-common.js에서 제어) -->
+            <button id="toggle-filter-btn" class="btn btn-primary btn-sm">필터 보이기/숨기기</button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <!-- ID는 스크립트에서 참조하기 위해 modelResultTable로 지정 -->
+                <table class="table table-bordered table-striped" id="modelResultTable" width="100%" cellspacing="0">
+                    <thead class="thead-dark">
+                        <!-- 1. 헤더 행 (keyword 제거됨) -->
+                        <tr>
+                            <th>id</th>
+                            <th>keyword_id</th>
+                            <!-- <th>keyword</th> 삭제 -->
+                            <th>title</th>
+                            <th>content</th>
+                            <th>url</th>
+                            <th>sentiment</th>
+                            <th>score</th>
+                            <th>published_at</th>
+                            <th>collected_at</th>
+                        </tr>
+                        
+                        <!-- 2. 필터 입력행 (keyword 제거됨) -->
+                        <tr id="filter-row" style="display:none;">
+                            <th><input type="text" placeholder="검색 id" /></th>
+                            <th><input type="text" placeholder="검색 kw_id" /></th>
+                            <!-- keyword 필터 삭제 -->
+                            <th><input type="text" placeholder="검색 title" /></th>
+                            <th><input type="text" placeholder="검색 content" /></th>
+                            <th><input type="text" placeholder="검색 url" /></th>
+                            
+                            <!-- Sentiment Select (인덱스 주의) -->
+                            <th>
+                                <select>
+                                    <option value="">전체</option>
+                                    {# 모델마다 감정 라벨이 다를 수 있으므로 emoji_map 키를 기반으로 하거나 고정 리스트 사용 #}
+                                    {% set sentiments = ['positive', 'negative', 'neutral', 'angry', 'fear', 'happy', 'tender', 'sad'] %}
+                                    {% for s in sentiments %}
+                                    <option value="{{ s }}">{{ s|capitalize }}</option>
+                                    {% endfor %}
+                                </select>
+                            </th>
+                            
+                            <th><input type="text" placeholder="검색 score" /></th>
+                            
+                            <!-- 날짜 필터 -->
+                            <th class="date-filter">
+                                <div class="date-range-group">
+                                    <input type="text" id="published_at_min" placeholder="시작일" autocomplete="off" />
+                                    <input type="text" id="published_at_max" placeholder="종료일" autocomplete="off" />
+                                </div>
+                            </th>
+                            <th class="date-filter">
+                                <div class="date-range-group">
+                                    <input type="text" id="collected_at_min" placeholder="시작일" autocomplete="off" />
+                                    <input type="text" id="collected_at_max" placeholder="종료일" autocomplete="off" />
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in data %}
+                        <tr>
+                            {% for value in row %}
+                                {% set idx = loop.index0 %}
+                                
+                                {# 0: id, 1: kw_id, 2: title #}
+                                {% if idx < 3 %}
+                                    <td>{{ value }}</td>
+                                
+                                {# 3: content #}
+                                {% elif idx == 3 %}
+                                    <td class="content-cell" title="{{ value }}">{{ value }}</td>
+
+                                {# 4: url (인덱스 당겨짐: 5->4) #}
+                                {% elif idx == 4 %}
+                                    <td class="text-center"><a href="{{ value }}" target="_blank" rel="noopener noreferrer">Link</a></td>
+                                
+                                {# 5: sentiment (6->5) #}
+                                {% elif idx == 5 %}
+                                    <td>
+                                        {# 이모지 맵은 app.py에서 넘겨받거나 여기서 정의 #}
+                                        {{ emoji_map.get(value|lower, '') }} {{ value }}
+                                    </td>
+                                
+                                {# 6: score (7->6) #}
+                                {% elif idx == 6 %}
+                                    <td style="min-width: 120px;">
+                                        <div>{{ "%.3f"|format(value) }}</div>
+                                        <div class="progress">
+                                            <div class="progress-bar 
+                                                 {% if row[5]|lower == 'positive' %}bg-success
+                                                 {% elif row[5]|lower == 'negative' %}bg-danger
+                                                 {% else %}bg-info{% endif %}" 
+                                                 role="progressbar"
+                                                 style="width: {{ (value * 100)|round(2) }}%;"
+                                                 aria-valuenow="{{ (value * 100)|round(2) }}"
+                                                 aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </td>
+                                
+                                {# 7, 8: dates #}
+                                {% else %}
+                                    <td>{{ value }}</td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'footer.html' %}
+<!-- 공통 필터 스크립트 포함 -->
+{% include 'scripts/table-filter-common.html' %}
+
+<script>
+    $(document).ready(function() {
+        var $table = $('#modelResultTable');
+        // keyword 컬럼이 빠졌으므로 날짜 컬럼 인덱스도 변경됨
+        // 0:id, 1:kw_id, 2:title, 3:cont, 4:url, 5:sent, 6:score, 7:pub_at, 8:col_at
+        var $publishedAtIndex = 7; 
+        var $collectedAtIndex = 8;
+        
+        // table-filter-common.html 에 정의된 함수 호출
+        if (typeof initializeTableFilter === 'function') {
+            initializeTableFilter($table, $publishedAtIndex, $collectedAtIndex);
+        } else {
+            console.error("initializeTableFilter function not found. Check 'scripts/table-filter-common.html'");
+        }
+    });
+</script>
+</body>
+</html>
+

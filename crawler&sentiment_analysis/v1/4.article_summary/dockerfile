@@ -1,0 +1,17 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# 캐싱 효율을 위해 requirements 먼저 복사
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 소스코드 복사
+COPY article_summary.py .
+
+# Config 디렉토리 생성
+RUN mkdir -p /app/config
+
+# 실행
+CMD ["python", "article_summary.py"]
+

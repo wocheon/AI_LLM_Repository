@@ -1,0 +1,50 @@
+FROM python:3.9-slim
+
+# 1. 필수 시스템 패키지 설치
+RUN apt-get update && apt-get install -y \
+    wget curl gnupg2 unzip ca-certificates \
+    xvfb xauth \
+    fonts-noto-cjk \
+    libnss3 libxss1 libasound2 libatk-bridge2.0-0 libgtk-3-0 \
+    libgbm1 \
+    jq \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
+
+# 2. Google Chrome Stable 설치
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | \
+    gpg --dearmor -o /usr/share/keyrings/google-chrome-keyring.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
+    > /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get update && \
+    apt-get install -y google-chrome-stable && \
+    rm -rf /var/lib/apt/lists/*
+
+# 3. Chromedriver 설치 (설치된 Chrome 버전에 맞춰 자동 다운로드)
+# jq 패키지 필요 (JSON 파싱용)
+RUN CHROME_VERSION=$(google-chrome --version | awk '{print $3}') && \
+    echo "Installed Chrome Version: $CHROME_VERSION" && \
+    # Chrome for Testing API에서 해당 버전의 드라이버 URL 찾기
+    # Major 버전만 추출 (예: 120)
+    MAJOR_VERSION=$(echo $CHROME_VERSION | cut -d. -f1) && \
+    # 최신 드라이버 정보 가져오기 (115버전 이후 엔드포인트 변경됨)
+    DRIVER_URL=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/latest-versions-per-milestone-with-downloads.json" | \
+    jq -r --arg ver "$MAJOR_VERSION" '.milestones[$ver].downloads.chromedriver[] | select(.platform=="linux64") | .url') && \
+    echo "Downloading Chromedriver from: $DRIVER_URL" && \
+    wget -q -O /tmp/chromedriver.zip "$DRIVER_URL" && \
+    unzip /tmp/chromedriver.zip -d /tmp/ && \
+    mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver && \
+    chmod +x /usr/local/bin/chromedriver && \
+    rm -rf /tmp/chromedriver.zip /tmp/chromedriver-linux64
+
+# 4. Python 패키지
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 5. 앱 복사
+COPY . /app
+WORKDIR /app
+RUN mkdir -p log
+
+# 6. 실행
+CMD ["xvfb-run", "--auto-servernum", "--server-args='-screen 0 1920x1080x24'", "python", "batch_updater_dataset.py"]

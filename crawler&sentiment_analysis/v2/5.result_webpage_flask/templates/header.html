@@ -1,0 +1,61 @@
+<!-- <link href="static/css/bootstrap.min.css" rel="stylesheet" />
+<link href="static/css/sb-admin-2.min.css" rel="stylesheet" />
+<link href="static/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+<link href="static/css/jquery-ui.min.css" rel="stylesheet" /> -->
+
+<link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet" />
+<link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet" />
+<link href="{{ url_for('static', filename='css/dataTables.bootstrap4.min.css') }}" rel="stylesheet" />
+<link href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" rel="stylesheet" />
+
+
+<style>
+  thead input, thead select {
+    width: 100%;
+    box-sizing: border-box;
+    height: 32px;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  th.date-filter {
+    min-width: 250px;
+    white-space: nowrap;
+  }
+  .date-range-group {
+    display: flex;
+    gap: 6px;
+  }
+  .date-range-group input {
+    width: 120px;
+    min-width: 100px;
+    max-width: 130px;
+    display: inline-block;
+    margin: 0;
+  }
+  /* DataTables 툴바 custom 버튼 위치 조정 */
+  .dt-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  /* 필터 토글 버튼 스타일 조정 */
+  #toggle-filter-btn {
+    padding: 3px 8px;
+    font-size: 0.875rem;
+  }
+</style>
+
+
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab == 'main' %}active{% endif %}" href="/">메인</a>
+  </li>
+  <li class="nav-item">
+    {% set target_model = current_slug if current_slug else 'kobert' %}
+    <a class="nav-link {% if active_tab not in ['main', 'comparison'] %}active{% endif %}" href="/model/{{ target_model }}"> 모델 별 감성분석 결과 </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab == 'comparison' %}active{% endif %}" href="/comparison">모델 간 결과 비교 분석</a>
+  </li>
+</ul>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>모델 비교 - Sentiment Analysis</title>
+    {% set active_tab = 'comparison' %}
+    {% include 'header.html' %}
+</head>
+<body id="page-top">
+    
+<div class="container-fluid mt-4">
+
+    <div class="table-responsive">
+        <table class="table table-bordered" id="comparisonTable" width="100%" cellspacing="0">
+
+            <thead class="thead-dark">
+                <!-- 컬럼 제목 행 -->
+                <tr>
+                    <th>id</th>
+                    <th>keyword_id</th>
+                    <th>keyword</th>
+                    <th>title</th>
+                    <th>content</th>
+                    <th>url</th>
+                    {% for model in model_list %}
+                        <th>{{ model }} 감정</th>
+                        <th>{{ model }} 점수</th>
+                    {% endfor %}
+                    <th>published_at</th>
+                    <th>collected_at</th>
+                </tr>
+
+                <!-- 필터 입력 행 (기본 숨김) -->
+                <tr id="filter-row" style="display:none;">
+                    <th><input type="text" placeholder="검색 id" /></th>
+                    <th><input type="text" placeholder="검색 keyword_id" /></th>
+                    <th>
+                        <select>
+                            <option value="">전체</option>
+                            {% for kw in keyword_set %}
+                                <option value="{{ kw }}">{{ kw }}</option>
+                            {% endfor %}
+                        </select>
+                    </th>
+                    <th><input type="text" placeholder="검색 title" /></th>
+                    <th><input type="text" placeholder="검색 content" /></th>
+                    <th><input type="text" placeholder="검색 url" /></th>
+
+                    {% for model in model_list %}
+                        <th>
+                            <select>
+                                <option value="">전체</option>
+                                {% for sent in sentiment_map.get(model, []) %}
+                                    <option value="{{ sent }}">{{ sent.capitalize() }}</option>
+                                {% endfor %}
+                            </select>
+                        </th>
+                        <th><input type="text" placeholder="검색 점수" /></th>
+                    {% endfor %}
+
+                    <th class="date-filter">
+                        <div class="date-range-group">
+                            <input type="text" id="published_at_min" placeholder="시작일 (YYYY-MM-DD)" autocomplete="off" />
+                            <input type="text" id="published_at_max" placeholder="종료일 (YYYY-MM-DD)" autocomplete="off" />
+                        </div>
+                    </th>
+                    <th class="date-filter">
+                        <div class="date-range-group">
+                            <input type="text" id="collected_at_min" placeholder="시작일 (YYYY-MM-DD)" autocomplete="off" />
+                            <input type="text" id="collected_at_max" placeholder="종료일 (YYYY-MM-DD)" autocomplete="off" />
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for article in combined_data.values() %}
+                <tr>
+                    <td>{{ article.meta[0] }}</td>
+                    <td>{{ article.meta[1] }}</td>
+                    <td>{{ article.meta[2] }}</td>
+                    <td>{{ article.meta[3] }}</td>
+                    <td>{{ article.meta[4] }}</td>
+                    <td><a href="{{ article.meta[5] }}" target="_blank" rel="noopener noreferrer">기사링크</a></td>
+                    {% for model in model_list %}
+                        {% set result = article.models.get(model) %}
+                        {% if result %}
+                            {% set sent_lower = result.sentiment|lower %}
+                            {% set score = result.score %}
+                            <td>{{ emoji_map.get(model, {}).get(sent_lower, '❓') }} {{ result.sentiment }}</td>
+                            <td style="min-width: 120px;">
+                                <div>{{ "%.3f"|format(score) }}</div>
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar"
+                                         style="width: {{ (score * 100)|round(2) }}%;"
+                                         aria-valuenow="{{ (score * 100)|round(2) }}"
+                                         aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </td>
+                        {% else %}
+                            <td>-</td>
+                            <td>-</td>
+                        {% endif %}
+                    {% endfor %}
+                    <td>{{ article.meta[6] }}</td>
+                    <td>{{ article.meta[7] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+</div>
+{% include 'footer.html' %}
+{% include 'scripts/table-filter-common.html' %}
+<script>    
+    $(document).ready(function() {
+        var $table = $('#comparisonTable');
+        var $publishedAtIndex = 10;
+        var $collectedAtIndex = 11;
+        initializeTableFilter($table, $publishedAtIndex, $collectedAtIndex);
+    });
+</script>
+</body>
+</html>
+

@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  redis:
+    container_name: redis
+    image: redis:alpine
+    ports: ["6379:6379"]
+    environment:
+      - TZ=Asia/Seoul  # [추가] 시간대 설정
+    networks:
+      - app-network
+
+  worker:
+    build: .
+    command: celery -A celery_app worker --loglevel=info -c 1
+    volumes:
+      - ./config/config.ini:/app/config/config.ini
+    environment:
+      - CONFIG_PATH=/app/config/config.ini
+      - PYTHONPATH=/app
+      - BROKER_URL=redis://redis:6379/0
+      - TZ=Asia/Seoul  # [추가] 로그 시간 동기화 (필수)
+    depends_on:
+      - redis
+    networks:
+      - app-network
+    deploy:
+      mode: replicated
+      replicas: 2
+
+networks:
+  app-network:
+    name: app-network
+    driver: bridge

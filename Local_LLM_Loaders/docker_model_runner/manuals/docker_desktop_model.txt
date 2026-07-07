@@ -1,0 +1,82 @@
+[DOCKER DESKTOP MODEL USE]
+
+[Windows]
+* Docker Desktop Settings 
+- Beta Feature - Enable Docker AI : check
+- AI - Docker Model Runner
+	- Enable Docker Model Runner : check 
+	- Enable host-side TCP support
+		- Port : 12434
+		- CORS Allowed Origins : ALL 
+
+* CMD 
+$ docker desktop version
+Docker Desktop CLI plugin version: v0.2.0
+
+$ docker desktop status
+Name                Value
+Status              running
+SessionID           9f099e62-38a1-4a52-9f40-a9ecc4315d7b
+
+$ docker desktop enable model-runner --tcp=12434
+
+$ docker model pull ai/qwen3:0.6B-Q4_K_M
+
+$ docker model ls
+MODEL NAME            PARAMETERS  QUANTIZATION    ARCHITECTURE  MODEL ID      CREATED       SIZE
+ai/qwen3:0.6B-Q4_K_M  751.63 M    IQ2_XXS/Q4_K_M  qwen3         18e5114fc13b  5 months ago  456.11 MiB
+
+
+$ curl http://localhost:12434/engines/llama.cpp/v1/chat/completions  -H "Content-Type: application/json" -d "{\"model\": \"ai/qwen3:0.6B-Q4_K_M\", \"messages\": [{\"role\": \"user\", \"content\": \"What is the capital of south Korea\"}]}"
+> API 엔드포인트는 다른 모델을 쓰더라도 고정이며 model 값만 바꿔서 사용
+
+{"choices":[{"finish_reason":"stop","index":0,"message":{"role":"assistant","reasoning_content":"Okay, so the user is asking, \"What is the capital of South Korea?\" I need to provide the correct information. Let me start by recalling that South Korea, also known as the Republic of Korea, has its capital in Seoul. I know that Seoul is the capital city, so that's straightforward. But wait, sometimes people might confuse the capital with other countries, like in the Middle East. I should make sure to mention that South Korea is a country in South Asia, not in the Middle East. Also, I should confirm the country's flag and that it is a republic. Let me check my sources to be sure. Yes, the correct answer is Seoul. No need to add extra information unless necessary. Just state that clearly.","content":"The capital of South Korea is **Seoul**."}}],"created":1761272479,"model":"ai/qwen3:0.6B-Q4_K_M","system_fingerprint":"b1-7a50cf3","object":"chat.completion","usage":{"completion_tokens":166,"prompt_tokens":15,"total_tokens":181},"id":"chatcmpl-RgADQtQLPcDWVsIBRwM666q3LFPYqBBR","timings":{"cache_n":0,"prompt_n":15,"prompt_ms":448.228,"prompt_per_token_ms":29.881866666666667,"prompt_per_second":33.46511150575154,"predicted_n":166,"predicted_ms":10010.525,"predicted_per_token_ms":60.304367469879516,"predicted_per_second":16.582546869419936}}
+
+> 프롬프트 처리가 실행중일때 다른 터미널에서 동작 확인 가능 
+$  docker model ps
+MODEL NAME            BACKEND    MODE        LAST USED
+ai/qwen3:0.6B-Q4_K_M  llama.cpp  completion  292 years ag
+
+
+
+[Linux (Ubuntu)]
+
+* Docker model Plugin 설치 
+apt install docker-model-plugin
+> GPU 할당 VM의 경우 , docker-nvidia-cotainer-toolkit 추가 설치 필요 
+  해당 toolkit 이 설치되어있다면, model-runner가 자동으로 GPU를 인식하여 사용 
+
+
+* Plugin 설치 후 docker-model-runner 컨테이너 실행 확인 
+$ docker ps -a
+CONTAINER ID   IMAGE                        COMMAND               CREATED          STATUS          PORTS                                                     NAMES
+3750626c403f   docker/model-runner:latest   "/app/model-runner"   10 minutes ago   Up 10 minutes   127.0.0.1:12434->12434/tcp, 172.17.0.1:12434->12434/tcp   docker-model-runner
+
+* 해당 컨테이너 삭제 시 복구 방법 
+- docker model 관련 명령을 실행하면 컨테이너가 다시 실행됨 
+```
+$ docker rm -f docker-model-runner 
+
+$ docker model ls
+latest: Pulling from docker/model-runner Digest: sha256:1d459093de83ceb542e3753ec3e76c2bae3dd2c03680a85ac19b82889f80682f
+Status: Image is up to date for docker/model-runner:latest
+
+Successfully pulled docker/model-runner:latest
+Starting model runner container docker-model-runner..
+MODEL NAME            PARAMETERS  QUANTIZATION    ARCHITECTURE  MODEL ID      CREATED       SIZE
+ai/qwen3:0.6B-Q4_K_M  751.63 M    IQ2_XXS/Q4_K_M  qwen3         18e5114fc13b  5 months ago  456.11 MiB
+
+
+$ docker ps -a 
+CONTAINER ID   IMAGE                        COMMAND               CREATED          STATUS          PORTS                                                     NAMES
+836779b20213   docker/model-runner:latest   "/app/model-runner"   34 seconds ago   Up 33 seconds   127.0.0.1:12434->12434/tcp, 172.17.0.1:12434->12434/tcp   docker-model-runner
+```
+
+* pull model  
+$ docker model pull ai/qwen3:0.6B-Q4_K_M
+
+
+* 모델 응답 확인 
+$ curl http://localhost:12434/engines/llama.cpp/v1/chat/completions  -H "Content-Type: application/json" -d "{\"model\": \"ai/qwen3:0.6\"content\": \"각 커피의 원산지별 특징을 정리해서 알려줘 \"}]}"
+
+{"choices":[{"finish_reason":"stop","index":0,"message":{"role":"assistant","reasoning_content":"Okay, the user wants me to list the characteristic features of each country's coffee origin. Let me start by recalling the major coffee-producing countries. I know countries like Brazil, Colombia, India, Ethiopia, and others. Each of these has their own unique characteristics.\n\nStarting with Brazil. It's a top producer of coffee, but I need to think about the features. Brazil has a lot of coffee production, but there's also issues like environmental impact. Maybe mention coffee production, but also the challenges they face. Then Colombia, which has a lot of coffee, but maybe they have problems with climate? Or maybe they have a lot of coffee, but the coffee quality varies. India is a big producer, but I should check the details. India has a lot of coffee, but there's also issues with pollution. Ethiopia has a rich coffee history, but maybe the coffee is not as diverse as other countries. I should make sure each list includes both the origin and the characteristics.\n\nWait, the user might be looking for a comparison or a list of each country's features. So I need to structure each country's characteristics clearly. Also, check if there are any other countries that are important. Maybe add some other regions like the Caribbean or the Amazon. But I need to be careful not to include any countries that are not major producers. Let me make sure each list is accurate and includes the key points.","content":"각 국가의 커피 원산지 특징을 정리하면 다음과 같습니다:\n\n### **1. 프랑스 (Brazil)**\n- **특징**:  \n  - 세계-largest coffee producer.  \n  - 유럽에서 가장 많은 농업 활동을 가하고 있습니다.  \n  - **지속적인 농업 흡수**: 향후 2022년 농업 생산량이 1억 달러로 10억 달러로 성장한 것으로 알려졌습니다.  \n  - **환경 문제**: 지속 가능한 농업을 위해 지속 가능한 도시와 공생 생태계를 도와받고 있습니다.  \n\n### **2. 코나다르 (Colombia)**\n- **특징**:  \n  - 주요 커피 콘비에이션지국이며, **지속 가능한 농업**을 강조했습니다.  \n  - **지속 가능한 품질**: 지속 가능한 농업과 소비자 인식을 통해 품질을 높였습니다.  \n  - **유럽에서의 기업 관계**: 유럽 국가들과 협력하여 농업 협력 프로그램을 추진 중입니다.  \n\n### **3. India**\n- **특징**:  \n  - **고정된 농업 수수료**: 2018년 농업 수수료가 21%로 1억 달러로 성장했습니다.  \n  - **지속 가능한 환경**: 농업과 환경 정화를 통한 지속 가능한 콘비에이션을 추진 중입니다.  \n  - **유럽에서의 투자**: 유럽 국가들과 협력하여 농업 및 농업 기술을 지원받고 있습니다.  \n\n### **4. 흑인 (Ethiopia)**\n- **특징**:  \n  - 유럽에서 가장 많은 콘비에이션국이며, **지속 가능한 농업**을 강조했습니다.  \n  - **지속 가능한 품질**: 농업과 환경 정화를 통해 품질을 유지하면서도 지속 가능한 접근을 진행 중입니다.  \n\n### **5. 네덜란드 (Netherlands)**\n- **특징**:  \n  - **대공급 국가**: 2019년 농업 수수료가 5%로 세계 10위로 성장했습니다.  \n  - **지속 가능한 농업**: 지속 가능한 도시와 공생 생태계를 통해 농업을 유지합니다.  \n\n### **6. 유럽 (Germany, France 등)**\n- **특징**:  \n  - **지속 가능한 농업**: 지속 가능한 도시와 공생 생태계를 통해 농업을 유지합니다.  \n  - **지속 가능한 품질**: 농업과 환경 정화를 통한 품질을 유지하면서 지속 가능성에 집중합니다.  \n\n### **7. 아프리카 (South Africa, Namibia)**\n- **특징**:  \n  - **지속 가능한 농업**: 지속 가능한 도시와 공생 생태계를 통해 농업을 유지합니다.  \n  - **지속 가능성**: 지속 가능한 접근을 통해 농업의 지속 가능성에 집중합니다.  \n\n이러한 특징을 바탕으로, 커피 원산지가 지속 가능한 접근과 농업 흡수를 통해 품질을 유지하면서도 지속 가능한 접근을 도와받고 있습니다."}}],"created":1761279558,"model":"ai/qwen3:0.6B-Q4_K_M","system_fingerprint":"b1-ca71fb9","object":"chat.completion","usage":{"completion_tokens":1113,"prompt_tokens":27,"total_tokens":1140},"id":"chatcmpl-NWSLN3p7xzkq6wtQjLIpecxpbNKcimuZ","timings":{"cache_n":3,"prompt_n":24,"prompt_ms":541.853,"prompt_per_token_ms":22.57720833333333,"prompt_per_second":44.2924557029305,"predicted_n":1113,"predicted_ms":215086.242,"predicted_per_token_ms":193.24909433962264,"predicted_per_second":5.174668494138272}}r

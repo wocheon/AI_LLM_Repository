@@ -1,0 +1,6 @@
+# 최소 요구 패키지 (WSL / Linux 환경)
+chromadb
+numpy
+requests
+openai
+python-dotenv

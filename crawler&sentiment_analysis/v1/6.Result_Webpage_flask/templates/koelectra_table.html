@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>KoELECTRA Articles Table</title>
+    <!-- <style>
+        thead input, thead select {
+          width: 100%;
+          box-sizing: border-box;
+          height: 32px;
+          padding: 4px 8px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+        }
+        th.date-filter { min-width: 250px; white-space: nowrap; }
+        .date-range-group { display: flex; gap: 6px; }
+        .date-range-group input {
+          width: 120px; min-width: 100px; max-width: 130px; display: inline-block; margin: 0;
+        }
+        #toggle-filter-btn { padding: 3px 8px; font-size: 0.875rem; }
+    </style> -->
+
+    {% set active_tab = 'koelectra' %}
+    {% include 'header.html' %}
+</head>
+<body id="page-top">
+
+<div class="container-fluid mt-4">
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="koelectraTable" width="100%" cellspacing="0">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>id</th>
+                            <th>keyword_id</th>
+                            <th>keyword</th>
+                            <th>title</th>
+                            <th>content</th>
+                            <th>url</th>
+                            <th>sentiment</th>
+                            <th>score</th>
+                            <th>published_at</th>
+                            <th>collected_at</th>
+                        </tr>
+                        <!-- 필터 입력행: 기본 숨김, 토글로 보임/숨김 -->
+                        <tr id="filter-row" style="display:none;">
+                            <th><input type="text" placeholder="검색 id" /></th>
+                            <th><input type="text" placeholder="검색 keyword_id" /></th>
+                            <th><input type="text" placeholder="검색 keyword" /></th>
+                            <th><input type="text" placeholder="검색 title" /></th>
+                            <th><input type="text" placeholder="검색 content" /></th>
+                            <th><input type="text" placeholder="검색 url" /></th>
+                            <th>
+                                <select>
+                                    <option value="">전체</option>
+                                    {% set sentiments = ['angry', 'happy', 'anxious', 'embarrassed', 'sad', 'heartache'] %}
+                                    {% for s in sentiments %}
+                                    <option value="{{ s }}">{{ s|capitalize }}</option>
+                                    {% endfor %}
+                                </select>
+                            </th>
+                            <th><input type="text" placeholder="검색 score" /></th>
+                            <th class="date-filter">
+                                <div class="date-range-group">
+                                    <input type="text" id="published_at_min" placeholder="시작일 (YYYY-MM-DD)" autocomplete="off" />
+                                    <input type="text" id="published_at_max" placeholder="종료일 (YYYY-MM-DD)" autocomplete="off" />
+                                </div>
+                            </th>
+                            <th class="date-filter">
+                                <div class="date-range-group">
+                                    <input type="text" id="collected_at_min" placeholder="시작일 (YYYY-MM-DD)" autocomplete="off" />
+                                    <input type="text" id="collected_at_max" placeholder="종료일 (YYYY-MM-DD)" autocomplete="off" />
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in data %}
+                        <tr>
+                            {% for value in row %}
+                                {% set idx = loop.index0 %}
+                                {% if idx == 5 %}
+                                    <td><a href="{{ value }}" target="_blank" rel="noopener noreferrer">기사링크</a></td>
+                                {% elif idx == 6 %}
+                                    <td>
+                                        {% set emoji_map = {
+                                            'angry': '😠',
+                                            'happy': '😊',
+                                            'anxious': '😰',
+                                            'embarrassed': '😳',
+                                            'sad': '😢',
+                                            'heartache': '💔'
+                                        } %}
+                                        {{ emoji_map.get(value|lower, '❓') }} {{ value }}
+                                    </td>
+                                {% elif idx == 7 %}
+                                    <td style="min-width: 120px;">
+                                        <div>{{ "%.3f"|format(value) }}</div>
+                                        <div class="progress">
+                                            <div class="progress-bar" role="progressbar"
+                                                 style="width: {{ (value * 100)|round(2) }}%;"
+                                                 aria-valuenow="{{ (value * 100)|round(2) }}"
+                                                 aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </td>
+                                {% else %}
+                                    <td>{{ value }}</td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'footer.html' %}
+{% include 'scripts/table-filter-common.html' %}
+<script>    
+    $(document).ready(function() {
+        var $table = $('#koelectraTable');
+        var $publishedAtIndex = 8;
+        var $collectedAtIndex = 9;
+        initializeTableFilter($table, $publishedAtIndex, $collectedAtIndex);
+    });
+</script>
+
+</body>
+</html>
+

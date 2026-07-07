@@ -1,0 +1,104 @@
+<script>
+function initializeTableFilter($table, publishedAtIndex, collectedAtIndex) {
+        var table = $table.DataTable({
+            orderCellsTop: true,
+            fixedHeader: true,
+            language: {
+                search: "검색:",
+                lengthMenu: "페이지당 _MENU_ 개씩 보기",
+                info: "_TOTAL_건 중 _START_~_END_번째",
+                paginate: { next: "다음", previous: "이전" }
+            }
+        });
+    
+        // 기존에 존재하는 필터 토글 버튼 제거 후, 페이지당 보기 옆에 버튼 삽입
+        $('#toggle-filter-btn').remove();
+        $('<button id="toggle-filter-btn" class="btn btn-secondary ml-2 btn-sm">필터 토글</button>')
+            .insertAfter('.dataTables_length');
+    
+        // 필터 토글 버튼 클릭 시 필터 행 보이기/숨기기
+        $(document).on('click', '#toggle-filter-btn', function() {
+            $('#filter-row').toggle();
+            table.columns.adjust().draw();
+        });
+    
+        // 텍스트 필터링 (날짜 필터 제외)
+        $table.find('thead tr:eq(1) th').each(function(i) {
+            var input = $(this).find('input[type="text"]:not(#published_at_min):not(#published_at_max):not(#collected_at_min):not(#collected_at_max)');
+            if (input.length) {
+                input.on('keyup change clear', function() {
+                    if (table.column(i).search() !== this.value) {
+                        table.column(i).search(this.value).draw();
+                    }
+                });
+            }
+        });
+    
+        // 드롭다운 필터 (대소문자 구분 없이 단순 포함 검색)
+        $table.find('thead tr:eq(1) th').each(function(i) {
+            var select = $(this).find('select');
+            if (select.length) {
+                select.on('change', function() {
+                    var val = $(this).val();
+                    table.column(i).search(val || '', false, false).draw();
+                });
+            }
+        });
+    
+        // Datepicker 초기화
+        $("#published_at_min, #published_at_max, #collected_at_min, #collected_at_max").datepicker({
+            dateFormat: "yy-mm-dd"
+        });
+    
+        // 날짜 범위 필터 함수 (시간 제거 후 비교)
+        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+            //var model_count = {{ model_list|length }};
+            //var model_count = model_list.length;
+            //var publishedAtIndex = 6 + (model_count * 2);
+            //var collectedAtIndex = publishedAtIndex + 1;
+
+            function extractDatePart(datetimeStr) {
+                if (!datetimeStr) return null;
+                var datePart = datetimeStr.split(' ')[0];
+                return datePart;
+            }
+            function parseDate(s) {
+                if (!s) return null;
+                var parts = s.split('-');
+                if(parts.length !== 3) return null;
+                return new Date(parts[0], parts[1] - 1, parts[2]);
+            }
+    
+            var publishedRaw = data[publishedAtIndex];
+            var collectedRaw = data[collectedAtIndex];
+    
+            var published = parseDate(extractDatePart(publishedRaw));
+            var collected = parseDate(extractDatePart(collectedRaw));
+    
+            var publishedMin = $('#published_at_min').val();
+            var publishedMax = $('#published_at_max').val();
+            var collectedMin = $('#collected_at_min').val();
+            var collectedMax = $('#collected_at_max').val();
+    
+            var publishedMinDate = parseDate(publishedMin);
+            var publishedMaxDate = parseDate(publishedMax);
+            var collectedMinDate = parseDate(collectedMin);
+            var collectedMaxDate = parseDate(collectedMax);
+    
+            if (published) {
+                if (publishedMinDate && published < publishedMinDate) return false;
+                if (publishedMaxDate && published > publishedMaxDate) return false;
+            }
+            if (collected) {
+                if (collectedMinDate && collected < collectedMinDate) return false;
+                if (collectedMaxDate && collected > collectedMaxDate) return false;
+            }
+            return true;
+        });
+    
+        // 날짜 필터 input 변경 시 테이블 재검색
+        $('#published_at_min, #published_at_max, #collected_at_min, #collected_at_max').on('change', function() {
+            table.draw();
+        });
+    }
+</script>    

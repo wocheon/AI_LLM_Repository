@@ -1,0 +1,27 @@
+# 1. 가볍고 안정적인 Python 3.9 slim 버전 사용
+FROM python:3.9-slim
+
+# 2. 작업 디렉토리 설정
+WORKDIR /app
+
+# 3. 시스템 의존성 설치 (MySQL 클라이언트 등 필요 시)
+# (순수 Python 패키지만 쓴다면 생략 가능하지만, mysqlclient 등을 쓰면 필요함)
+RUN apt-get update && apt-get install -y \
+    gcc \
+    default-libmysqlclient-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# 4. 의존성 파일 복사 및 설치
+# 캐싱 효율을 위해 requirements.txt를 먼저 복사
+COPY config/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 5. 소스 코드 전체 복사
+# (celery_app.py, tasks 폴더, utils 폴더 등이 모두 복사됨)
+COPY . .
+
+# 6. 실행 권한 설정 (선택사항)
+# RUN chmod +x start_worker.sh
+
+# 7. 실행 명령어 (docker-compose에서 덮어쓰므로 생략 가능하나 명시)
+CMD ["celery", "-A", "celery_app", "worker", "--loglevel=info"]

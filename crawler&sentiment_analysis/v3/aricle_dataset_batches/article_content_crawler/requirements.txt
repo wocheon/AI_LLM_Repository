@@ -1,0 +1,19 @@
+feedparser
+beautifulsoup4
+newspaper3k
+trafilatura
+requests
+selenium
+pymysql
+configparser
+lxml[html_clean]
+lxml_html_clean
+elasticsearch
+configparser
+psutil
+celery[redis]
+redis
+# --- [필수 추가] Anti-Bot Evasion ---
+undetected-chromedriver>=3.5.5
+curl_cffi>=0.7.0
+fake-useragent>=1.4.0

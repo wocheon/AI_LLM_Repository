@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>Model Analysis Result: {{ model_name }}</title>
+    {% set active_tab = 'model_result' %}
+    {% include 'header.html' %}
+</head>
+<body id="page-top">
+
+<!-- 상단 헤더 부분에 드롭다운 추가 -->
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">모델 분석 결과: {{ model_real_name }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <form class="form-inline">
+            <label class="my-1 mr-2" for="modelSelect">모델 선택:</label>
+            <select class="custom-select my-1 mr-sm-2" id="modelSelect" 
+                    onchange="location = this.value;">
+                <option value="" disabled>모델을 선택하세요</option>
+                
+                <!-- config에서 가져온 모델 목록을 반복문으로 출력 -->
+                {% for slug, name in all_models.items() %}
+                    <option value="/model/{{ slug }}" 
+                            {% if slug == current_slug %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+</div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Analysis Data Table</h6>
+            <button id="toggle-filter-btn" class="btn btn-primary btn-sm">필터 보이기/숨기기</button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped" id="modelResultTable" width="100%" cellspacing="0">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>id</th>
+                            <th>keyword</th>
+                            <th>category</th>
+                            <th>title</th>
+                            <th>content(ES_ID)</th>                            
+                            <th>url</th>
+                            <th>summary</th>
+                            <th>sentiment</th>
+                            <th>score</th>
+                            <th>published_at</th>
+                            <th>collected_at</th>
+                        </tr>
+                        
+                        <tr id="filter-row" style="display:none;">
+                            <th><input type="text" placeholder="검색 id" /></th>
+                            <th><input type="text" placeholder="검색 keyword" /></th>
+                            <th><input type="text" placeholder="검색 category" /></th>
+                            <th><input type="text" placeholder="검색 title" /></th>
+                            <th><input type="text" placeholder="검색 content(ES_ID)" /></th>
+                            <th><input type="text" placeholder="검색 summary" disabled /></th> <!-- 팝업이라 검색 비활성 -->
+                            <th><input type="text" placeholder="검색 url" /></th>
+                            
+                            <th>
+                                <select>
+                                    <option value="">전체</option>
+                                    {% set sentiments = ['positive', 'negative', 'neutral', 'angry', 'fear', 'happy', 'tender', 'sad'] %}
+                                    {% for s in sentiments %}
+                                    <option value="{{ s }}">{{ s|capitalize }}</option>
+                                    {% endfor %}
+                                </select>
+                            </th>
+                            
+                            <th><input type="text" placeholder="검색 score" /></th>
+                            
+                            <th class="date-filter">
+                                <div class="date-range-group">
+                                    <input type="text" id="published_at_min" placeholder="시작" autocomplete="off" />
+                                    <input type="text" id="published_at_max" placeholder="종료" autocomplete="off" />
+                                </div>
+                            </th>
+                            <th class="date-filter">
+                                <div class="date-range-group">
+                                    <input type="text" id="collected_at_min" placeholder="시작" autocomplete="off" />
+                                    <input type="text" id="collected_at_max" placeholder="종료" autocomplete="off" />
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                        <tbody>
+                        {% for row in data %}
+                            <tr>
+                                {% for value in row %}
+                                    {% set idx = loop.index0 %}
+
+                                    {# 0: id, 1: keyword, 2: category, 3: title, 4: content(ID) #}
+                                    {% if idx <= 4 %}
+                                        <td>{{ value }}</td>
+                            
+                                    {# 4: url #}
+                                    {% elif idx == 5 %}
+                                        <td class="text-center"><a href="{{ value }}" target="_blank">Link</a></td>
+                            
+                                    {# 5: summary (팝업 링크) #}
+                                    {% elif idx == 6 %}
+                                        <td class="text-center">
+                                            {# ES ID는 content(3)에 있음. row[3] 사용 #}
+                                            {% set article_id = row[4] %}
+                                            <a href="/summary/{{ article_id }}" 
+                                               target="_blank" 
+                                               class="btn btn-info btn-sm"
+                                               onclick="window.open(this.href, 'summaryPopup', 'width=900,height=600,scrollbars=yes,resizable=yes'); return false;">
+                                               View
+                                            </a>
+                                        </td>
+                                    
+                                    {# 6: sentiment (5->6) #}
+                                    {% elif idx == 7 %}
+                                        <td>{{ emoji_map.get(value|lower, '') }} {{ value }}</td>
+                                    
+                                    {# 7: score (6->7) #}
+                                    {% elif idx == 8 %}                                       
+                                        <td style="min-width: 120px;">
+                                        <div>{{ "%.3f"|format(value) }}</div>
+                                        <div class="progress">
+                                            <div class="progress-bar 
+                                                 {% if row[7]|lower == 'positive' %}bg-success
+                                                 {% elif row[7]|lower == 'negative' %}bg-danger
+                                                 {% else %}bg-info{% endif %}" 
+                                                 role="progressbar"
+                                                 style="width: {{ (value * 100)|round(2) }}%;"
+                                                 aria-valuenow="{{ (value * 100)|round(2) }}"
+                                                 aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </td>                                        
+                                    
+                                    {# 8, 9: dates (7,8 -> 8,9) #}
+                                    {% else %}
+                                        <td>{{ value }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'footer.html' %}
+{% include 'scripts/table-filter-common.html' %}
+
+<script>
+    $(document).ready(function() {
+        var $table = $('#modelResultTable');
+        var $publishedAtIndex = 9; 
+        var $collectedAtIndex = 10;
+        
+        if (typeof initializeTableFilter === 'function') {
+            initializeTableFilter($table, $publishedAtIndex, $collectedAtIndex);
+        }
+    });
+</script>
+</body>
+</html>

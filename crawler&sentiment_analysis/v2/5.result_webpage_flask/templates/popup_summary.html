@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Article Summary</title>    
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='css/dataTables.bootstrap4.min.css') }}" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" rel="stylesheet" />
+
+<style>
+    body { 
+        padding: 25px; 
+        background-color: #f8f9fa; 
+        font-family: 'Noto Sans KR', sans-serif; 
+    }
+    
+    .info-label { font-weight: bold; color: #495057; width: 100px; }
+
+    /* 공통 박스 스타일 (Shadow, Background, Padding) */
+    .custom-box {
+        background: #fff;
+        padding: 20px;
+        border-radius: 4px; /* 모서리 살짝 둥글게 */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* 은은한 그림자 */
+        margin-bottom: 1.5rem;
+    }
+
+    /* 요약 박스: 초록색 포인트 */
+    .summary-box {
+        border-left: 5px solid #17b888; 
+    }
+
+    /* 본문 박스: 보라색 포인트 */
+    .content-box {
+        border-left: 5px solid #342685; 
+        color: #555; /* 본문은 글씨색 약간 연하게 */
+    }
+
+    /* 폰트 스타일 */
+    .summary-text { font-size: 14px; line-height: 1.8; color: #333; }
+    .content-text { font-size: 14px; line-height: 1.6; }
+
+</style>
+
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- 헤더: 제목 -->
+        <div class="mb-4 pb-2 border-bottom">
+            <h5 class="text-primary mb-1">{{ info.title }}</h5>
+            <small class="text-muted">
+                <a href="{{ info.url }}" target="_blank">원본 링크 바로가기 🔗</a>
+            </small>
+        </div>
+
+        <!-- 메타 정보 (테이블 형태) -->
+        <table class="table table-sm table-borderless mb-4">
+            <tr>
+                <td class="info-label">키워드</td>
+                <td><span class="badge badge-secondary">{{ info.keyword }}</span></td>
+            </tr>
+            <tr>
+                <td class="info-label">카테고리</td>
+                <td>{{ info.category }}</td>
+            </tr>
+            <tr>
+                <td class="info-label">게시일시</td>
+                <td>{{ info.published_at }}</td>
+            </tr>
+            <tr>
+                <td class="info-label">수집일시</td>
+                <td>{{ info.crawled_at }}</td>
+            </tr>
+        </table>
+
+        <!-- 본문 미리보기 섹션 -->
+        <h6 class="mb-2 text-muted font-weight-bold">📄 본문 미리보기</h6>
+        <div class="custom-box content-box">
+            <div class="content-text">
+                {{ info.content }}
+            </div>
+        </div>
+
+        <!-- 요약 섹션 -->
+        <h5 class="mb-2 text-dark font-weight-bold">📝 AI 요약</h5>
+        <div class="custom-box summary-box">
+            <div class="summary-text">
+                {{ info.summary | replace('\n', '<br>') | safe }}
+            </div>
+        </div>
+
+        <!-- 닫기 버튼 -->
+        <div class="text-center mt-4">
+            <button onclick="window.close()" class="btn btn-secondary px-4">닫기</button>
+        </div>
+    </div>
+    {% include 'footer.html' %}    
+</body>
+</html>

@@ -1,0 +1,23 @@
+# Python 기반 이미지 사용
+FROM python:3.11-slim
+
+# 환경 변수 설정 (UTF-8)
+ENV PYTHONUNBUFFERED=1
+ENV LANG=C.UTF-8
+
+# 필요 패키지 설치 (MySQL 접속용)
+RUN pip install --upgrade pip
+
+# 작업 디렉토리 생성 및 설정
+WORKDIR /app
+
+# 소스 복사
+#COPY . /app
+COPY requirements.txt /app
+
+# requirements 설치
+RUN pip install -r requirements.txt
+
+# 컨테이너 기동 시 flask 실행
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
+
