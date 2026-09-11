@@ -12,7 +12,7 @@ DB_CONFIG = {
     'host': '127.0.0.1',
     'port': 3306,
     'user': 'root',
-    'password': 'rootpass',
+    'password': 'CHANGE_ME_ROOT_PASSWORD',
     'db': 'shop',
     'charset': 'utf8mb4',
     'init_command': 'SET NAMES utf8mb4 COLLATE utf8mb4_general_ci',
@@ -31,4 +31,3 @@ SMART_MODEL_NAME = "ai/qwen3:4B-UD-Q8_K_XL"
 # (사용자 환경에 qwen2.5:0.5b 또는 llama3.2:1b 등이 설치되어 있어야 함. 없다면 SMART_MODEL과 같게 설정)
 #FAST_MODEL_NAME = "ai/gemma3:4B-Q4_K_M"
 FAST_MODEL_NAME = "ai/qwen3:4B-UD-Q4_K_XL"
-

@@ -4,7 +4,7 @@ curl -X POST "localhost:9200/_reindex?pretty" -H 'Content-Type: application/json
     "remote": {
       "host": "http://외부서버IP:9200",
       "username": "elastic_user",
-      "password": "elastic_password"
+      "password": "CHANGE_ME_ELASTIC_PASSWORD"
     },
     "index": "dataset_articles",
     "query": {

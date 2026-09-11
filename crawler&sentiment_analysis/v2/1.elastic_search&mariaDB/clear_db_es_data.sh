@@ -6,7 +6,7 @@ curl -X DELETE "http://localhost:9200/article_summary" | jq
 
 # delete mysql data
 echo "### DELETE SQL DATA###"
-mysql -h 127.0.0.1 -P 3306 -u root -prootpass << EOF 
+mysql -h 127.0.0.1 -P 3306 -u root -pCHANGE_ME_ROOT_PASSWORD << EOF
 truncate table crawler_sentiment_analysis.crawler_article_list ;
 truncate table crawler_sentiment_analysis.sentiment_results ;
 select 'crawler_article_list' as table_name,  count(*) from crawler_sentiment_analysis.crawler_article_list

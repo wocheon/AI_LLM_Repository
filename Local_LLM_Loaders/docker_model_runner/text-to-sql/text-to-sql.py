@@ -7,7 +7,7 @@ DB_CONFIG = {
     'host': '127.0.0.1',
     'port': 3306,
     'user': 'root',
-    'password': 'rootpass',
+    'password': 'CHANGE_ME_ROOT_PASSWORD',
     'db': 'shop',
     'charset': 'utf8mb4',
     'cursorclass': pymysql.cursors.DictCursor
@@ -147,4 +147,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

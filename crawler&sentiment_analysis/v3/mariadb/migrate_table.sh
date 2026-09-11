@@ -6,7 +6,7 @@ LOCAL_HOST="127.0.0.1"
 LOCAL_DB="crawler_sentiment_analysis"
 LOCAL_TABLE="article_dataset"
 LOCAL_USER="root"
-LOCAL_PASS="rootpass"
+LOCAL_PASS="CHANGE_ME_ROOT_PASSWORD"
 
 # [Remote Target]
 REMOTE_HOST="34.22.104.188"
@@ -14,7 +14,7 @@ REMOTE_PORT="3306"
 REMOTE_DB="crawler_sentiment_analysis"
 REMOTE_TABLE="article_dataset_local" # 여기에 넣을 예정
 REMOTE_USER="root"
-REMOTE_PASS="rootpass"
+REMOTE_PASS="CHANGE_ME_ROOT_PASSWORD"
 
 DUMP_FILE="migration_dump.sql"
 
@@ -42,4 +42,3 @@ mysql -h "${REMOTE_HOST}" -P "${REMOTE_PORT}" -u "${REMOTE_USER}" -p"${REMOTE_PA
 
 echo ">>> Migration Complete!"
 # rm "${DUMP_FILE}" # (Optional) 임시 파일 삭제
-

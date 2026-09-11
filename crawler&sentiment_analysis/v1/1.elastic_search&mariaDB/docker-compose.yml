@@ -35,10 +35,10 @@ services:
     image: mariadb:10.5.10
     container_name: mariadb-main
     environment:
-      - MYSQL_ROOT_PASSWORD=rootpass
+      - MYSQL_ROOT_PASSWORD=CHANGE_ME_ROOT_PASSWORD
       - MYSQL_DATABASE=connect_test_db
       - MYSQL_USER=appuser
-      - MYSQL_PASSWORD=appuserpass
+      - MYSQL_PASSWORD=CHANGE_ME_APP_PASSWORD
     volumes:
       - ./mariadb_confs/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./mariadb_confs/mariadb_main.cnf:/etc/mysql/mariadb.cnf

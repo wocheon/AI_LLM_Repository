@@ -2,7 +2,7 @@ CREATE DATABASE IF NOT EXISTS crawler_sentiment_analysis;
 USE crawler_sentiment_analysis;
 
 # 유저 생성 
-CREATE user IF NOT EXISTS 'appuser'@'%' IDENTIFIED BY 'appuserpass';
+CREATE user IF NOT EXISTS 'appuser'@'%' IDENTIFIED BY 'CHANGE_ME_APP_PASSWORD';
 
 -- 모든 권한을 부여 
 GRANT ALL PRIVILEGES ON crawler_sentiment_analysis.* TO 'appuser'@'%';

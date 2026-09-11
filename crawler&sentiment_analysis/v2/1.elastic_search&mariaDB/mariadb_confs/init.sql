@@ -2,7 +2,7 @@ CREATE DATABASE IF NOT EXISTS crawler_sentiment_analysis;
 USE crawler_sentiment_analysis;
 
 # 유저 생성 
-CREATE user IF NOT EXISTS 'appuser'@'%' IDENTIFIED BY 'appuserpass';
+CREATE user IF NOT EXISTS 'appuser'@'%' IDENTIFIED BY 'CHANGE_ME_APP_PASSWORD';
 
 -- 모든 권한을 부여 
 GRANT ALL PRIVILEGES ON crawler_sentiment_analysis.* TO 'appuser'@'%';
@@ -57,4 +57,3 @@ CREATE TABLE `sentiment_results` (
   -- 중복 분석 방지 (한 기사를 같은 모델/버전으로 또 분석하는 것 방지)
   UNIQUE KEY `uk_article_model` (`article_id`, `model_name`, `model_version`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='감성 분석 결과 통합 테이블';
-

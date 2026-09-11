@@ -1,0 +1,30 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+**/aws_credentials
+!**/aws_credentials.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Python/runtime artifacts
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.log
+
+# Local databases, caches, and exported datasets
+**/chroma_data/
+*.sqlite
+*.sqlite3
+*.db
+**/migration_dump.sql
+
+# Editor/OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
