@@ -1,4 +1,6 @@
-# AI 모델을 활용한 기사 감성 분석용 아키텍쳐 (v2)
+# AI 모델을 활용한 기사 감성 분석 아키텍처 (v2)
+
+> `v2_async`는 [`../v1_batch`](../v1_batch/)의 서비스 범위를 유지하면서 Redis와 Celery 기반 비동기 처리를 도입한 개선판입니다.
 
 ## 개요 
 - 기사 수집 및 요약/감성분석을 제공하는 아키텍쳐를 구성
@@ -110,5 +112,13 @@ Web -.-> data -.-> MySQL & ES
 - 웹 프레임워크: FastAPI, Flask
 - 배포: Docker
 
+## 디렉터리 구성
 
+| 디렉터리 | 역할 |
+| --- | --- |
+| `infrastructure` | MariaDB와 Elasticsearch 실행 환경 |
+| `article_crawler` | 기사 수집, 저장 및 비동기 작업 등록 |
+| `sentiment_api` | 감성 분석 모델 FastAPI 서버 |
+| `celery_worker` | 기사 요약 및 감성 분석 비동기 작업자 |
+| `result_web` | 분석 결과를 보여주는 Flask 웹 애플리케이션 |
 

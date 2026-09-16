@@ -1,4 +1,6 @@
-# AI 모델을 활용한 기사 감성 분석용 아키텍쳐 (v1)
+# AI 모델을 활용한 기사 감성 분석 아키텍처 (v1)
+
+> `v1_batch`는 기사 수집 후 요약과 감성 분석 배치를 각각 실행하는 초기 애플리케이션 스냅샷입니다. 현재 비동기 개선판은 [`../v2_async`](../v2_async/)에 있습니다.
 
 ## 개요 
 - 기사 수집 및 요약/감성분석을 제공하는 아키텍쳐를 구성
@@ -64,3 +66,13 @@ graph TD
 - 웹 프레임워크: FastAPI, Flask
 - 배포: Docker
 
+## 디렉터리 구성
+
+| 디렉터리 | 역할 |
+| --- | --- |
+| `infrastructure` | MariaDB와 Elasticsearch 실행 환경 |
+| `article_crawler` | 기사 수집 및 원문·메타데이터 저장 |
+| `sentiment_api` | 감성 분석 모델 FastAPI 서버 |
+| `article_summary` | 기사 요약 배치 |
+| `sentiment_batches` | KoBERT, KoELECTRA, Qwen3 분석 요청 배치 |
+| `result_web` | 분석 결과를 보여주는 Flask 웹 애플리케이션 |
